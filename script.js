@@ -4,7 +4,7 @@
 
 // IMPORTANTE: Después de desplegar tu Web App, reemplaza esta URL con la que te dé Google Apps Script.
 // La URL termina en /exec
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwIZOuUSzb2I_BmH6hIKsqhDd_90WhSswIcOZPGkmp3-wuor6yWLYOq3kfJ4iBv9EiW/exec'; 
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyYWUakaOtD-lLSmn6_Hwus396zsRyBcefUXjICY0BEgalwR9XvlZj4E9B_OYHrIS4/exec'; 
 
 // ============================================================
 //  FALLBACK: lista completa de jugos (si no se cargan desde Google)
@@ -16,7 +16,7 @@ const LISTA_FALLBACK = [
     { id: 3, nombre: 'Mango', precio: 7 },
     { id: 4, nombre: 'Fresa con Leche', precio: 7 },
     { id: 6, nombre: 'Plátano', precio: 3 },
-    { id: 12, nombre: 'Jugo naranja', precio: 3 },
+    { id: 12, nombre: 'Jugo naranja', precio: 2 },
     { id: 10, nombre: 'Jugo Surtido', precio: 4 },
     { id: 11, nombre: 'Jugo Especial', precio: 10 }
 ];
