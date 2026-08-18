@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>HUJOS · Sistema de ventas</title>
+    <link rel="stylesheet" href="sctyle.css">
+    <!-- En la sección <head> de tu HTML -->
+</head>
+
+<body>
+    <header>
+        <h1>🥤 HUJOS</h1>
+        <p class="subtitle">Registro de ventas</p>
+    </header>
+
+    <!-- SECCIÓN: JUGOS -->
+    <section id="seccion-jugos">
+        <h2>🧃 Jugos</h2>
+        <div class="productos-grid" id="jugos-container"></div>
+
+        <div class="selector-presentacion">
+            <label>Presentación:</label>
+            <div class="opciones-presentacion">
+                <button type="button" class="btn-presentacion activo" data-presentacion="Vaso">🥤 Vaso</button>
+                <button type="button" class="btn-presentacion" data-presentacion="Llevar">🛍️ Para llevar</button>
+            </div>
+        </div>
+
+        <div class="campo-cantidad">
+            <label for="cantidad-jugos">Cantidad:</label>
+            <input type="number" id="cantidad-jugos" value="1" min="1">
+        </div>
+
+        <button id="btn-registrar-jugo" class="btn-primario">📥 REGISTRAR VENTA</button>
+        <div id="mensaje-jugos" class="mensaje"></div>
+    </section>
+
+    <!-- SECCIÓN: OTROS PRODUCTOS -->
+    <section id="seccion-otros">
+        <h2>🛍️ Otros productos</h2>
+        <div class="campo-texto">
+            <label for="nombre-otro">Nombre del producto:</label>
+            <input type="text" id="nombre-otro" placeholder="Ej. Agua, Queque, Galletas">
+        </div>
+        <div class="campo-precio">
+            <label for="precio-otro">Precio unitario (S/):</label>
+            <input type="number" id="precio-otro" placeholder="0.00" step="0.01" min="0">
+        </div>
+        <div class="campo-cantidad">
+            <label for="cantidad-otro">Cantidad:</label>
+            <input type="number" id="cantidad-otro" value="1" min="1">
+        </div>
+        <button id="btn-registrar-otro" class="btn-primario">📥 REGISTRAR VENTA</button>
+        <div id="mensaje-otros" class="mensaje"></div>
+    </section>
+
+    <!-- SECCIÓN: VENTAS DEL DÍA -->
+    <section id="seccion-ventas">
+        <h2>📋 Ventas de hoy</h2>
+        <div id="resumen-dia">
+            <p><strong>Total vendido:</strong> <span id="total-dia">S/ 0.00</span></p>
+            <p><strong>Unidades vendidas:</strong> <span id="unidades-dia">0</span></p>
+        </div>
+        <div id="lista-ventas-dia">
+            <p class="placeholder">Cargando ventas...</p>
+        </div>
+        <button id="btn-actualizar-dia" class="btn-secundario">🔄 Actualizar</button>
+    </section>
+
+    <!-- SECCIÓN: RESUMEN MENSUAL -->
+    <section id="seccion-resumen">
+        <h2>📊 Resumen mensual</h2>
+        <div class="filtro-mes">
+            <label for="mes-resumen">Mes:</label>
+            <input type="month" id="mes-resumen" value="2026-08">
+            <button id="btn-cargar-resumen" class="btn-secundario">Cargar</button>
+        </div>
+        <div id="contenido-resumen">
+            <p class="placeholder">Selecciona un mes y presiona Cargar.</p>
+        </div>
+    </section>
+
+    <!-- BARRA DE NAVEGACIÓN INFERIOR (fija) -->
+    <nav class="nav-inferior">
+        <button class="nav-btn activo" data-seccion="seccion-jugos">🧃 Jugos</button>
+        <button class="nav-btn" data-seccion="seccion-otros">🛍️ Otros</button>
+        <button class="nav-btn" data-seccion="seccion-ventas">📋 Hoy</button>
+        <button class="nav-btn" data-seccion="seccion-resumen">📊 Resumen</button>
+    </nav>
+
+    <script src="script.js"></script>
+</body>
+</html>
