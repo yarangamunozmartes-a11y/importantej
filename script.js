@@ -1,10 +1,8 @@
-// ============================================================
-//  CONFIGURACIÓN - DIRECTO A GOOGLE APPS SCRIPT
-// ============================================================
+===================================================
 
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyS3oVkA5xKB1iuwuEyKrfCvNHtHnLlERQxAjgo_h0unxsB8ofyF7ctzQwHp1iZgYom/exec';
 
-
+// LISTA FALLBACK (mantener igual)
 const LISTA_FALLBACK = [
     { id: 1, nombre: 'papaya', precio: 5 },
     { id: 2, nombre: 'piña', precio: 5 },
@@ -57,6 +55,24 @@ const secciones = {
     ventas: $('seccion-ventas'),
     resumen: $('seccion-resumen')
 };
+
+// ============================================================
+//  FUNCIÓN PARA OBTENER FECHA EN FORMATO CONSISTENTE
+// ============================================================
+
+function obtenerFechaFormateada(fecha) {
+    const d = fecha.getDate();
+    const m = fecha.getMonth() + 1;
+    const y = fecha.getFullYear();
+    // Formato: DD/MM/YYYY con ceros a la izquierda
+    return `${String(d).padStart(2, '0')}/${String(m).padStart(2, '0')}/${y}`;
+}
+
+function obtenerHoraFormateada(fecha) {
+    const h = fecha.getHours();
+    const min = fecha.getMinutes();
+    return `${String(h).padStart(2, '0')}:${String(min).padStart(2, '0')}`;
+}
 
 // ============================================================
 //  INICIALIZACIÓN
@@ -170,8 +186,8 @@ async function registrarVentaJugo() {
 
     const total = Number(producto.precio) * cantidad;
     const ahora = new Date();
-    const fecha = ahora.toLocaleDateString('es-PE');
-    const hora = ahora.toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' });
+    const fecha = obtenerFechaFormateada(ahora);
+    const hora = obtenerHoraFormateada(ahora);
 
     const datos = {
         fecha,
@@ -209,8 +225,8 @@ async function registrarVentaOtro() {
 
     const total = precio * cantidad;
     const ahora = new Date();
-    const fecha = ahora.toLocaleDateString('es-PE');
-    const hora = ahora.toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' });
+    const fecha = obtenerFechaFormateada(ahora);
+    const hora = obtenerHoraFormateada(ahora);
 
     const datos = {
         fecha,
@@ -230,18 +246,18 @@ async function registrarVentaOtro() {
     cantidadOtro.value = '1';
 }
 
-// --- Enviar venta ---
+// --- Enviar venta (CORREGIDO: SIN no-cors) ---
 async function enviarVenta(datos, elementoMensaje) {
     const btn = elementoMensaje.closest('section').querySelector('.btn-primario');
     btn.disabled = true;
     btn.textContent = '⏳ Enviando...';
 
     try {
-        await fetch(SCRIPT_URL, {
+        // 🔥 CORRECCIÓN: Quitamos 'mode: no-cors' y 'Content-Type: text/plain'
+        const response = await fetch(SCRIPT_URL, {
             method: 'POST',
-            mode: 'no-cors',
-            headers: { 
-                'Content-Type': 'text/plain;charset=utf-8'
+            headers: {
+                'Content-Type': 'application/json',  // Cambiado a application/json
             },
             body: JSON.stringify({
                 action: 'guardarVenta',
@@ -249,43 +265,62 @@ async function enviarVenta(datos, elementoMensaje) {
             })
         });
 
-        mostrarMensaje(elementoMensaje, '✅ Venta registrada correctamente.', 'exito');
+        // 🔥 IMPORTANTE: Ahora podemos leer la respuesta
+        const result = await response.json();
         
-        setTimeout(async () => {
-            await cargarVentasDia();
-        }, 1500);
-
-        document.querySelectorAll('.producto-item').forEach(el => el.classList.remove('seleccionado'));
-        jugoSeleccionado = null;
-        cantidadJugos.value = '1';
+        if (result.status === 'success') {
+            mostrarMensaje(elementoMensaje, '✅ Venta registrada correctamente.', 'exito');
+            
+            // Limpiar selección
+            document.querySelectorAll('.producto-item').forEach(el => el.classList.remove('seleccionado'));
+            jugoSeleccionado = null;
+            cantidadJugos.value = '1';
+            
+            // Recargar ventas del día
+            setTimeout(async () => {
+                await cargarVentasDia();
+            }, 500);
+            
+        } else {
+            mostrarMensaje(elementoMensaje, `❌ Error: ${result.message || 'Error desconocido'}`, 'error');
+        }
 
     } catch (error) {
-        mostrarMensaje(elementoMensaje, `❌ Error: ${error.message}`, 'error');
+        mostrarMensaje(elementoMensaje, `❌ Error de conexión: ${error.message}`, 'error');
+        console.error('Error detallado:', error);
     } finally {
         btn.disabled = false;
         btn.textContent = '📥 REGISTRAR VENTA';
     }
 }
 
-// --- Cargar ventas del día ---
+// --- Cargar ventas del día (CORREGIDO) ---
 async function cargarVentasDia() {
     try {
-        const hoy = new Date().toLocaleDateString('es-PE');
+        const hoy = obtenerFechaFormateada(new Date());
+        console.log('Buscando ventas para fecha:', hoy); // Debug
+        
         const url = `${SCRIPT_URL}?action=getVentasDia&fecha=${encodeURIComponent(hoy)}&ts=${Date.now()}`;
         const resp = await fetch(url);
         if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
 
         const data = await resp.json();
+        console.log('Respuesta del servidor:', data); // Debug
+        
         if (data.status === 'success' && Array.isArray(data.ventas)) {
             ventasDelDia = data.ventas;
             mostrarVentasDia(ventasDelDia);
         } else {
             ventasDelDia = [];
             mostrarVentasDia([]);
+            if (data.message) {
+                console.warn('Mensaje del servidor:', data.message);
+            }
         }
     } catch (error) {
+        console.error('Error al cargar ventas:', error);
         if (listaVentasDia) {
-            listaVentasDia.innerHTML = '<p class="placeholder">Error al cargar las ventas.</p>';
+            listaVentasDia.innerHTML = `<p class="placeholder">Error al cargar las ventas: ${error.message}</p>`;
         }
     }
 }
@@ -314,7 +349,7 @@ function mostrarVentasDia(ventas) {
                     <span>S/ ${Number(v.total || 0).toFixed(2)}</span>
                 </div>
                 <div class="detalle" style="font-size:0.75rem; color:#7a6e5c;">
-                    <span>${v.presentacion || 'N/A'} · ${v.hora}</span>
+                    <span>${v.presentacion || 'N/A'} · ${v.hora || '--:--'}</span>
                     <span>${v.categoria}</span>
                 </div>
             </div>
@@ -380,7 +415,7 @@ function mostrarResumen(resumen, nombreMes, año) {
         html += `<div class="fila"><span>Para llevar</span><span>${presentaciones.Llevar || 0}</span></div>`;
     }
 
-    if     (otrosProductos && otrosProductos.length > 0) {
+    if (otrosProductos && otrosProductos.length > 0) {
         html += `<div style="margin-top:0.8rem; font-weight:600;">🛍️ Otros productos</div>`;
         otrosProductos.forEach(item => {
             html += `<div class="fila"><span>${item.nombre}</span><span>${item.cantidad} und.</span></div>`;
