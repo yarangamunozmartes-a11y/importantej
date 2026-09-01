@@ -1,7 +1,4 @@
-===================================================
-
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxsdqg-ZSigAXXKNR6yxY0WeWSjfDQHRHbsS1Ecvpl2sHdiAwDh9ILDShYHBBo24Xpf/exec';
-
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzwb3f7oyBKtmmfMiZdpbgG5E5GE7IwYYuTBFNsLyUPtimpH3SxW6R2pEwOf2iGlWaG/exec';
 
 const LISTA_FALLBACK = [
     { id: 1, nombre: 'papaya', precio: 5 },
@@ -15,7 +12,7 @@ const LISTA_FALLBACK = [
 ];
 
 // ============================================================
-//  FUNCIONES PARA FECHAS CONSISTENTES (NUEVO)
+//  FUNCIONES PARA FECHAS CONSISTENTES
 // ============================================================
 
 function formatearFecha(fecha) {
@@ -164,7 +161,7 @@ function renderizarJugos(productos) {
     });
 }
 
-// --- Registrar venta de jugo (MODIFICADO) ---
+// --- Registrar venta de jugo ---
 async function registrarVentaJugo() {
     if (jugoSeleccionado === null) {
         mostrarMensaje(mensajeJugos, '⚠️ Selecciona un jugo de la lista.', 'error');
@@ -185,7 +182,6 @@ async function registrarVentaJugo() {
 
     const total = Number(producto.precio) * cantidad;
     const ahora = new Date();
-    // CAMBIO: Uso formatearFecha y formatearHora
     const fecha = formatearFecha(ahora);
     const hora = formatearHora(ahora);
 
@@ -203,7 +199,7 @@ async function registrarVentaJugo() {
     await enviarVenta(datos, mensajeJugos);
 }
 
-// --- Registrar venta de otro producto (MODIFICADO) ---
+// --- Registrar venta de otro producto ---
 async function registrarVentaOtro() {
     const nombre = nombreOtro.value.trim();
     if (!nombre) {
@@ -225,7 +221,6 @@ async function registrarVentaOtro() {
 
     const total = precio * cantidad;
     const ahora = new Date();
-    // CAMBIO: Uso formatearFecha y formatearHora
     const fecha = formatearFecha(ahora);
     const hora = formatearHora(ahora);
 
@@ -284,10 +279,9 @@ async function enviarVenta(datos, elementoMensaje) {
     }
 }
 
-// --- Cargar ventas del día (MODIFICADO) ---
+// --- Cargar ventas del día ---
 async function cargarVentasDia() {
     try {
-        // CAMBIO: Uso formatearFecha
         const hoy = formatearFecha(new Date());
         const url = `${SCRIPT_URL}?action=getVentasDia&fecha=${encodeURIComponent(hoy)}&ts=${Date.now()}`;
         const resp = await fetch(url);
