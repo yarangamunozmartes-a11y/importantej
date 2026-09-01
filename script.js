@@ -2,7 +2,7 @@
 //  CONFIGURACIÓN - DIRECTO A GOOGLE APPS SCRIPT
 // ============================================================
 
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyYWUakaOtD-lLSmn6_Hwus396zsRyBcefUXjICY0BEgalwR9XvlZj4E9B_OYHrIS4/exec';
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyS3oVkA5xKB1iuwuEyKrfCvNHtHnLlERQxAjgo_h0unxsB8ofyF7ctzQwHp1iZgYom/exec';
 
 // ============================================================
 //  FALLBACK: lista actual de la hoja PRODUCTOS
