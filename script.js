@@ -1,6 +1,6 @@
 ===================================================
 
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyS3oVkA5xKB1iuwuEyKrfCvNHtHnLlERQxAjgo_h0unxsB8ofyF7ctzQwHp1iZgYom/exec';
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxJj-IUADd04t9UBFF8V3rIP2ekOql1wImvLgDfVg_Hyoh89BxdOgmETk6Djn5SMgQB/exec';
 
 // LISTA FALLBACK (mantener igual)
 const LISTA_FALLBACK = [
