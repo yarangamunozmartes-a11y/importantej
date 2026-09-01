@@ -1,8 +1,8 @@
 ===================================================
 
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxJj-IUADd04t9UBFF8V3rIP2ekOql1wImvLgDfVg_Hyoh89BxdOgmETk6Djn5SMgQB/exec';
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxsdqg-ZSigAXXKNR6yxY0WeWSjfDQHRHbsS1Ecvpl2sHdiAwDh9ILDShYHBBo24Xpf/exec';
 
-// LISTA FALLBACK (mantener igual)
+
 const LISTA_FALLBACK = [
     { id: 1, nombre: 'papaya', precio: 5 },
     { id: 2, nombre: 'piña', precio: 5 },
@@ -13,6 +13,23 @@ const LISTA_FALLBACK = [
     { id: 7, nombre: 'surtido', precio: 4 },
     { id: 8, nombre: 'especial', precio: 10 }
 ];
+
+// ============================================================
+//  FUNCIONES PARA FECHAS CONSISTENTES (NUEVO)
+// ============================================================
+
+function formatearFecha(fecha) {
+    const d = String(fecha.getDate()).padStart(2, '0');
+    const m = String(fecha.getMonth() + 1).padStart(2, '0');
+    const y = fecha.getFullYear();
+    return `${d}/${m}/${y}`;
+}
+
+function formatearHora(fecha) {
+    const h = String(fecha.getHours()).padStart(2, '0');
+    const min = String(fecha.getMinutes()).padStart(2, '0');
+    return `${h}:${min}`;
+}
 
 // ============================================================
 //  ESTADO
@@ -55,24 +72,6 @@ const secciones = {
     ventas: $('seccion-ventas'),
     resumen: $('seccion-resumen')
 };
-
-// ============================================================
-//  FUNCIÓN PARA OBTENER FECHA EN FORMATO CONSISTENTE
-// ============================================================
-
-function obtenerFechaFormateada(fecha) {
-    const d = fecha.getDate();
-    const m = fecha.getMonth() + 1;
-    const y = fecha.getFullYear();
-    // Formato: DD/MM/YYYY con ceros a la izquierda
-    return `${String(d).padStart(2, '0')}/${String(m).padStart(2, '0')}/${y}`;
-}
-
-function obtenerHoraFormateada(fecha) {
-    const h = fecha.getHours();
-    const min = fecha.getMinutes();
-    return `${String(h).padStart(2, '0')}:${String(min).padStart(2, '0')}`;
-}
 
 // ============================================================
 //  INICIALIZACIÓN
@@ -165,7 +164,7 @@ function renderizarJugos(productos) {
     });
 }
 
-// --- Registrar venta de jugo ---
+// --- Registrar venta de jugo (MODIFICADO) ---
 async function registrarVentaJugo() {
     if (jugoSeleccionado === null) {
         mostrarMensaje(mensajeJugos, '⚠️ Selecciona un jugo de la lista.', 'error');
@@ -186,8 +185,9 @@ async function registrarVentaJugo() {
 
     const total = Number(producto.precio) * cantidad;
     const ahora = new Date();
-    const fecha = obtenerFechaFormateada(ahora);
-    const hora = obtenerHoraFormateada(ahora);
+    // CAMBIO: Uso formatearFecha y formatearHora
+    const fecha = formatearFecha(ahora);
+    const hora = formatearHora(ahora);
 
     const datos = {
         fecha,
@@ -203,7 +203,7 @@ async function registrarVentaJugo() {
     await enviarVenta(datos, mensajeJugos);
 }
 
-// --- Registrar venta de otro producto ---
+// --- Registrar venta de otro producto (MODIFICADO) ---
 async function registrarVentaOtro() {
     const nombre = nombreOtro.value.trim();
     if (!nombre) {
@@ -225,8 +225,9 @@ async function registrarVentaOtro() {
 
     const total = precio * cantidad;
     const ahora = new Date();
-    const fecha = obtenerFechaFormateada(ahora);
-    const hora = obtenerHoraFormateada(ahora);
+    // CAMBIO: Uso formatearFecha y formatearHora
+    const fecha = formatearFecha(ahora);
+    const hora = formatearHora(ahora);
 
     const datos = {
         fecha,
@@ -246,18 +247,18 @@ async function registrarVentaOtro() {
     cantidadOtro.value = '1';
 }
 
-// --- Enviar venta (CORREGIDO: SIN no-cors) ---
+// --- Enviar venta ---
 async function enviarVenta(datos, elementoMensaje) {
     const btn = elementoMensaje.closest('section').querySelector('.btn-primario');
     btn.disabled = true;
     btn.textContent = '⏳ Enviando...';
 
     try {
-        // 🔥 CORRECCIÓN: Quitamos 'mode: no-cors' y 'Content-Type: text/plain'
-        const response = await fetch(SCRIPT_URL, {
+        await fetch(SCRIPT_URL, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',  // Cambiado a application/json
+            mode: 'no-cors',
+            headers: { 
+                'Content-Type': 'text/plain;charset=utf-8'
             },
             body: JSON.stringify({
                 action: 'guardarVenta',
@@ -265,62 +266,44 @@ async function enviarVenta(datos, elementoMensaje) {
             })
         });
 
-        // 🔥 IMPORTANTE: Ahora podemos leer la respuesta
-        const result = await response.json();
+        mostrarMensaje(elementoMensaje, '✅ Venta registrada correctamente.', 'exito');
         
-        if (result.status === 'success') {
-            mostrarMensaje(elementoMensaje, '✅ Venta registrada correctamente.', 'exito');
-            
-            // Limpiar selección
-            document.querySelectorAll('.producto-item').forEach(el => el.classList.remove('seleccionado'));
-            jugoSeleccionado = null;
-            cantidadJugos.value = '1';
-            
-            // Recargar ventas del día
-            setTimeout(async () => {
-                await cargarVentasDia();
-            }, 500);
-            
-        } else {
-            mostrarMensaje(elementoMensaje, `❌ Error: ${result.message || 'Error desconocido'}`, 'error');
-        }
+        setTimeout(async () => {
+            await cargarVentasDia();
+        }, 1500);
+
+        document.querySelectorAll('.producto-item').forEach(el => el.classList.remove('seleccionado'));
+        jugoSeleccionado = null;
+        cantidadJugos.value = '1';
 
     } catch (error) {
-        mostrarMensaje(elementoMensaje, `❌ Error de conexión: ${error.message}`, 'error');
-        console.error('Error detallado:', error);
+        mostrarMensaje(elementoMensaje, `❌ Error: ${error.message}`, 'error');
     } finally {
         btn.disabled = false;
         btn.textContent = '📥 REGISTRAR VENTA';
     }
 }
 
-// --- Cargar ventas del día (CORREGIDO) ---
+// --- Cargar ventas del día (MODIFICADO) ---
 async function cargarVentasDia() {
     try {
-        const hoy = obtenerFechaFormateada(new Date());
-        console.log('Buscando ventas para fecha:', hoy); // Debug
-        
+        // CAMBIO: Uso formatearFecha
+        const hoy = formatearFecha(new Date());
         const url = `${SCRIPT_URL}?action=getVentasDia&fecha=${encodeURIComponent(hoy)}&ts=${Date.now()}`;
         const resp = await fetch(url);
         if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
 
         const data = await resp.json();
-        console.log('Respuesta del servidor:', data); // Debug
-        
         if (data.status === 'success' && Array.isArray(data.ventas)) {
             ventasDelDia = data.ventas;
             mostrarVentasDia(ventasDelDia);
         } else {
             ventasDelDia = [];
             mostrarVentasDia([]);
-            if (data.message) {
-                console.warn('Mensaje del servidor:', data.message);
-            }
         }
     } catch (error) {
-        console.error('Error al cargar ventas:', error);
         if (listaVentasDia) {
-            listaVentasDia.innerHTML = `<p class="placeholder">Error al cargar las ventas: ${error.message}</p>`;
+            listaVentasDia.innerHTML = '<p class="placeholder">Error al cargar las ventas.</p>';
         }
     }
 }
@@ -349,7 +332,7 @@ function mostrarVentasDia(ventas) {
                     <span>S/ ${Number(v.total || 0).toFixed(2)}</span>
                 </div>
                 <div class="detalle" style="font-size:0.75rem; color:#7a6e5c;">
-                    <span>${v.presentacion || 'N/A'} · ${v.hora || '--:--'}</span>
+                    <span>${v.presentacion || 'N/A'} · ${v.hora}</span>
                     <span>${v.categoria}</span>
                 </div>
             </div>
