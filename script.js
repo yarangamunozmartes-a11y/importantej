@@ -4,9 +4,6 @@
 
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyS3oVkA5xKB1iuwuEyKrfCvNHtHnLlERQxAjgo_h0unxsB8ofyF7ctzQwHp1iZgYom/exec';
 
-// ============================================================
-//  FALLBACK: lista actual de la hoja PRODUCTOS
-// ============================================================
 
 const LISTA_FALLBACK = [
     { id: 1, nombre: 'papaya', precio: 5 },
@@ -110,32 +107,20 @@ function mostrarSeccion(id) {
 async function cargarProductos() {
     try {
         const url = `${SCRIPT_URL}?action=getProductos&ts=${Date.now()}`;
-        console.log('🔄 Solicitando productos a:', url);
-
         const resp = await fetch(url);
-
-        if (!resp.ok) {
-            throw new Error(`HTTP ${resp.status}`);
-        }
+        if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
 
         const data = await resp.json();
-        console.log('✅ Respuesta remota:', data);
-
         if (data && data.status === 'success' && Array.isArray(data.productos) && data.productos.length > 0) {
             productosJugos = data.productos;
-            console.log('✅ Productos cargados desde Google:', productosJugos);
         } else {
             productosJugos = [...LISTA_FALLBACK];
-            console.warn('⚠️ Sin productos válidos desde Google. Usando fallback actual.');
             mostrarMensaje(mensajeJugos, '📋 Usando lista actual local.', 'error');
         }
-
     } catch (error) {
-        console.error('❌ Error cargando productos:', error);
         productosJugos = [...LISTA_FALLBACK];
         mostrarMensaje(mensajeJugos, '📋 No se pudo conectar a Google. Usando lista local.', 'error');
     }
-
     renderizarJugos(productosJugos);
 }
 
@@ -245,16 +230,13 @@ async function registrarVentaOtro() {
     cantidadOtro.value = '1';
 }
 
-// --- Enviar venta (VERSIÓN SIN CORS BLOQUEANTE) ---
+// --- Enviar venta ---
 async function enviarVenta(datos, elementoMensaje) {
     const btn = elementoMensaje.closest('section').querySelector('.btn-primario');
     btn.disabled = true;
     btn.textContent = '⏳ Enviando...';
 
     try {
-        console.log('📤 Enviando venta:', datos);
-
-        // Se usa no-cors y text/plain para evitar las restricciones Preflight OPTIONS de Google Apps Script
         await fetch(SCRIPT_URL, {
             method: 'POST',
             mode: 'no-cors',
@@ -269,7 +251,6 @@ async function enviarVenta(datos, elementoMensaje) {
 
         mostrarMensaje(elementoMensaje, '✅ Venta registrada correctamente.', 'exito');
         
-        // Esperamos un momento para darle tiempo al Script de guardar antes de actualizar la lista local
         setTimeout(async () => {
             await cargarVentasDia();
         }, 1500);
@@ -279,7 +260,6 @@ async function enviarVenta(datos, elementoMensaje) {
         cantidadJugos.value = '1';
 
     } catch (error) {
-        console.error('❌ Error al enviar venta:', error);
         mostrarMensaje(elementoMensaje, `❌ Error: ${error.message}`, 'error');
     } finally {
         btn.disabled = false;
@@ -292,15 +272,10 @@ async function cargarVentasDia() {
     try {
         const hoy = new Date().toLocaleDateString('es-PE');
         const url = `${SCRIPT_URL}?action=getVentasDia&fecha=${encodeURIComponent(hoy)}&ts=${Date.now()}`;
-        console.log('🔄 Cargando ventas del día:', url);
-
         const resp = await fetch(url);
-
         if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
 
         const data = await resp.json();
-        console.log('📊 Ventas del día:', data);
-
         if (data.status === 'success' && Array.isArray(data.ventas)) {
             ventasDelDia = data.ventas;
             mostrarVentasDia(ventasDelDia);
@@ -308,9 +283,7 @@ async function cargarVentasDia() {
             ventasDelDia = [];
             mostrarVentasDia([]);
         }
-
     } catch (error) {
-        console.error('❌ Error cargando ventas del día:', error);
         if (listaVentasDia) {
             listaVentasDia.innerHTML = '<p class="placeholder">Error al cargar las ventas.</p>';
         }
@@ -364,23 +337,16 @@ async function cargarResumenMensual() {
 
     try {
         const url = `${SCRIPT_URL}?action=getResumenMensual&mes=${mes}&año=${año}&ts=${Date.now()}`;
-        console.log('🔄 Cargando resumen mensual:', url);
-
         const resp = await fetch(url);
-
         if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
 
         const data = await resp.json();
-        console.log('📊 Resumen mensual:', data);
-
         if (data.status === 'success' && data.resumen) {
             mostrarResumen(data.resumen, nombreMes, año);
         } else {
             contenidoResumen.innerHTML = '<p class="placeholder">No hay datos para este mes.</p>';
         }
-
     } catch (error) {
-        console.error('❌ Error cargando resumen:', error);
         contenidoResumen.innerHTML = '<p class="placeholder">Error al cargar resumen.</p>';
     }
 }
@@ -414,7 +380,7 @@ function mostrarResumen(resumen, nombreMes, año) {
         html += `<div class="fila"><span>Para llevar</span><span>${presentaciones.Llevar || 0}</span></div>`;
     }
 
-    if (otrosProductos && otrosProductos.length > 0) {
+    if     (otrosProductos && otrosProductos.length > 0) {
         html += `<div style="margin-top:0.8rem; font-weight:600;">🛍️ Otros productos</div>`;
         otrosProductos.forEach(item => {
             html += `<div class="fila"><span>${item.nombre}</span><span>${item.cantidad} und.</span></div>`;
